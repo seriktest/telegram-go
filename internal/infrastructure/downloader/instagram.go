@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/url"
 	"os"
 	"os/exec"
@@ -31,7 +32,10 @@ func (i *InstagramDownloader) Download(videoURL string) (io.ReadCloser, *domain.
 	cookiesPath := "configs/cookies.txt"
 	var extraArgs []string
 	if _, err := os.Stat(cookiesPath); err == nil {
+		log.Printf("InstagramDownloader: using cookies from %s", cookiesPath)
 		extraArgs = append(extraArgs, "--cookies", cookiesPath)
+	} else {
+		log.Printf("InstagramDownloader: cookies file NOT found at %s. Error: %v", cookiesPath, err)
 	}
 
 	// 1. Получаем метаданные через yt-dlp -j

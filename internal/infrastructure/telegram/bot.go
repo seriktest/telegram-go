@@ -76,6 +76,7 @@ func (b *Bot) handleMessage(message *telego.Message) {
 	// Скачивание
 	stream, info, err := b.videoUC.Download(context.Background(), text)
 	if err != nil {
+		log.Printf("Download error for URL %s: %v", text, err)
 		b.sendMessage(chatID, fmt.Sprintf("Ошибка: %v", err))
 		return
 	}
