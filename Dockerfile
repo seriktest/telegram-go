@@ -1,5 +1,5 @@
 # Сборочный этап
-FROM golang:1.27-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
@@ -11,18 +11,21 @@ RUN go mod download
 COPY . .
 
 # Собираем бинарник
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bot cmd/bot/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o bot ./cmd/bot
 
 # Финальный этап
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates
+# Устанавливаем зависимости для работы yt-dlp и ffmpeg
+RUN apk --no-cache add ca-certificates python3 ffmpeg curl \
+    && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
+    && chmod a+rx /usr/local/bin/yt-dlp
 
-WORKDIR /root/
+WORKDIR /app
 
 COPY --from=builder /app/bot .
 
-# Создаем папку для временных файлов
-RUN mkdir -p /tmp
+# Создаем папку для временных файлов и конфигов
+RUN mkdir -p /tmp /app/configs
 
 CMD ["./bot"]
