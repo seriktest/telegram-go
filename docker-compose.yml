@@ -9,3 +9,4 @@ services:
       - .env
     volumes:
       - ./tmp:/tmp # Для временных файлов, если нужно
+      - ./configs:/app/configs

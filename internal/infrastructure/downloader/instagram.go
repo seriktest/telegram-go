@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -27,8 +28,16 @@ func (i *InstagramDownloader) CanHandle(videoURL string) bool {
 }
 
 func (i *InstagramDownloader) Download(videoURL string) (io.ReadCloser, *domain.VideoInfo, error) {
+	cookiesPath := "configs/cookies.txt"
+	var extraArgs []string
+	if _, err := os.Stat(cookiesPath); err == nil {
+		extraArgs = append(extraArgs, "--cookies", cookiesPath)
+	}
+
 	// 1. Получаем метаданные через yt-dlp -j
-	cmdInfo := exec.Command("yt-dlp", "-j", videoURL)
+	args := append([]string{"-j"}, extraArgs...)
+	args = append(args, videoURL)
+	cmdInfo := exec.Command("yt-dlp", args...)
 	var infoBuf bytes.Buffer
 	var errBuf bytes.Buffer
 	cmdInfo.Stdout = &infoBuf
@@ -46,7 +55,9 @@ func (i *InstagramDownloader) Download(videoURL string) (io.ReadCloser, *domain.
 	}
 
 	// 2. Запускаем скачивание в stdout
-	cmdDownload := exec.Command("yt-dlp", "-o", "-", videoURL)
+	downloadArgs := append([]string{"-o", "-"}, extraArgs...)
+	downloadArgs = append(downloadArgs, videoURL)
+	cmdDownload := exec.Command("yt-dlp", downloadArgs...)
 	stdout, err := cmdDownload.StdoutPipe()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create stdout pipe: %w", err)
