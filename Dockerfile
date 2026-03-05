@@ -1,22 +1,28 @@
-FROM golang:1.25-alpine AS builder
+# Сборочный этап
+FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
 
+# Копируем файлы зависимостей
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Копируем исходный код
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o telegram-bot ./cmd/bot
+# Собираем бинарник
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bot cmd/bot/main.go
 
+# Финальный этап
 FROM alpine:latest
 
-WORKDIR /app
+RUN apk --no-cache add ca-certificates
 
-RUN apk --no-cache add ca-certificates python3 ffmpeg curl \
-    && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
-    && chmod a+rx /usr/local/bin/yt-dlp
+WORKDIR /root/
 
-COPY --from=builder /app/telegram-bot .
+COPY --from=builder /app/bot .
 
-CMD ["./telegram-bot"]
+# Создаем папку для временных файлов
+RUN mkdir -p /tmp
+
+CMD ["./bot"]
