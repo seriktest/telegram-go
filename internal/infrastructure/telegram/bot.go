@@ -58,6 +58,8 @@ func (b *Bot) handleMessage(message *telego.Message) {
 	chatID := message.Chat.ID
 	text := message.Text
 
+	log.Printf("Received message from %d: %s", chatID, text)
+
 	if text == "/start" {
 		b.sendMessage(chatID, "Привет! Отправь мне ссылку на видео с YouTube.")
 		return
