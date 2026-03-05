@@ -30,9 +30,11 @@ func (i *InstagramDownloader) Download(videoURL string) (io.ReadCloser, *domain.
 	// 1. Получаем метаданные через yt-dlp -j
 	cmdInfo := exec.Command("yt-dlp", "-j", videoURL)
 	var infoBuf bytes.Buffer
+	var errBuf bytes.Buffer
 	cmdInfo.Stdout = &infoBuf
+	cmdInfo.Stderr = &errBuf
 	if err := cmdInfo.Run(); err != nil {
-		return nil, nil, fmt.Errorf("failed to get video info: %w", err)
+		return nil, nil, fmt.Errorf("failed to get video info: %w (stderr: %s)", err, errBuf.String())
 	}
 
 	var metadata struct {
@@ -40,7 +42,7 @@ func (i *InstagramDownloader) Download(videoURL string) (io.ReadCloser, *domain.
 		Duration float64 `json:"duration"`
 	}
 	if err := json.Unmarshal(infoBuf.Bytes(), &metadata); err != nil {
-		return nil, nil, fmt.Errorf("failed to parse metadata: %w", err)
+		return nil, nil, fmt.Errorf("failed to parse metadata: %w, output: %s", err, infoBuf.String())
 	}
 
 	// 2. Запускаем скачивание в stdout

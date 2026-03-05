@@ -13,8 +13,9 @@ FROM alpine:latest
 
 WORKDIR /app
 
-RUN apk --no-cache add ca-certificates python3 ffmpeg \
-    && apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing yt-dlp
+RUN apk --no-cache add ca-certificates python3 ffmpeg curl \
+    && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
+    && chmod a+rx /usr/local/bin/yt-dlp
 
 COPY --from=builder /app/telegram-bot .
 
