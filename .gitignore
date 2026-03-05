@@ -6,3 +6,4 @@
 *.prof
 *.out
 vendor/
+configs/cookies.txt
